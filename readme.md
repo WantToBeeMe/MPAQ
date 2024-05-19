@@ -1,10 +1,5 @@
 TODO: to set up this template you will have to change the "template" everywhere to your thing name,
   so that is in:
- 1. in settings.gradle
- 2. folder/directory name
- 3. @Plugin at the top of this class
- 4. title in this companion object
- 5. maybe class name (instead of MinecraftPlugin, you could do TemplatePlugin)
 
 Everything then should work still
 yuo can build the plugin jar with the little hammer icon next to the run button

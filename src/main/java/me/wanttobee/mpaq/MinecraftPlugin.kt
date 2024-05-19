@@ -1,5 +1,7 @@
-package me.wanttobee.template;
+package me.wanttobee.mpaq;
 
+import me.wanttobee.commandtree.CommandTreeSystem
+import me.wanttobee.everythingitems.ItemUtil
 import org.bukkit.ChatColor
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.annotation.command.Commands
@@ -10,7 +12,7 @@ import org.bukkit.plugin.java.annotation.plugin.Plugin
 import org.bukkit.plugin.java.annotation.plugin.author.Author
 
 
-@Plugin(name = "Template", version ="1.0.1")
+@Plugin(name = "MPAQ", version ="1.0.1")
 @ApiVersion(ApiVersion.Target.v1_20)
 @Author("WantToBeeMe")
 @Description("A super cool plugin")
@@ -25,11 +27,13 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author
 class MinecraftPlugin : JavaPlugin() {
     companion object {
         lateinit var instance: MinecraftPlugin
-        val title = "${ChatColor.GRAY}[${ChatColor.GOLD}Template Plugin${ChatColor.GRAY}]${ChatColor.RESET}"
+        val title = "${ChatColor.GRAY}[${ChatColor.GOLD}MPAQ${ChatColor.GRAY}]${ChatColor.RESET}"
     }
 
     override fun onEnable() {
         instance = this
+        CommandTreeSystem.initialize(instance, "${ChatColor.GREEN}(C)$title")
+        ItemUtil.initialize(instance, "${ChatColor.LIGHT_PURPLE}(I)$title")
 
         server.onlinePlayers.forEach { player ->
             player.sendMessage("$title Plugin has been enabled!")
@@ -37,6 +41,8 @@ class MinecraftPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
+        ItemUtil.disablePlugin()
+
         server.onlinePlayers.forEach { player ->
             player.sendMessage("$title Plugin has been disabled!")
         }
