@@ -26,6 +26,11 @@ repositories {
     }
 
     maven {
+        name = "citizens-repo"
+        url = uri("https://maven.citizensnpcs.co/repo")
+    }
+
+    maven {
         name = "spigotmc-repo"
         url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         // here you can find the latest's spigot versions
@@ -42,6 +47,12 @@ dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22") // kotlin!!
     compileOnly("org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT") // annotations!!
     kapt("org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT") // annotations!!
+
+
+    compileOnly("net.citizensnpcs:citizens-main:2.0.33-SNAPSHOT") {
+        exclude(group = "*", module = "*")
+    }
+
 }
 
 // Configures a task to process resources, such as a plugin.yml file,
