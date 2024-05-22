@@ -9,6 +9,7 @@ import net.citizensnpcs.api.trait.Trait
 import net.citizensnpcs.api.trait.TraitName
 import net.citizensnpcs.npc.CitizensNPC
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -18,12 +19,12 @@ object NPCManager {
         register = CitizensAPI.getNPCRegistry()
     }
 
-    fun createNPC(name: String, skinName: String, coordinates: Pair<Double, Double> = Pair(0.0, 0.0)): NPC {
+    fun createNPC(name: String, skinName: String, coordinates: Location): NPC {
         val npc = register.createNPC(EntityType.PLAYER, name)
         npc.setProtected(true)
         npc.isProtected = true
         npc.data().set("player-skin-name", skinName)
-        npc.spawn(Bukkit.getWorlds().first().spawnLocation)
+        npc.spawn(coordinates)
         return npc
     }
 

@@ -3,6 +3,7 @@ package me.wanttobee.mpaq;
 import me.wanttobee.commandtree.CommandTreeSystem
 import me.wanttobee.everythingitems.ItemUtil
 import me.wanttobee.mpaq.party.PartyCommands
+import me.wanttobee.mpaq.party.PartyManager
 import org.bukkit.ChatColor
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.annotation.command.Command
@@ -47,6 +48,7 @@ class MinecraftPlugin : JavaPlugin() {
         CommandTreeSystem.createCommand(NPCCommands)
         NPCManager.init(this)
         CommandTreeSystem.createCommand(PartyCommands)
+        server.pluginManager.registerEvents(PartyManager, this)
 
 
         server.onlinePlayers.forEach { player ->

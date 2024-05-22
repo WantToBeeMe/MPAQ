@@ -1,14 +1,14 @@
 package me.wanttobee.mpaq.party
 
 import org.bukkit.entity.Player
+import java.util.UUID
 
 class Party (
-    val leader: Player,
+    val leaderUUID: UUID,
     val members: MutableList<Player> = mutableListOf(),
     val outgoingInvites: MutableList<Player> = mutableListOf()) {
 
     fun messageParty(message: String) {
-        leader.sendMessage(message)
         members.forEach { it.sendMessage(message) }
     }
 

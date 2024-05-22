@@ -24,7 +24,7 @@ object NPCCommands : ICommandNamespace {
             CommandStringLeaf("skinName", null, { commander, skinName -> skinName }),
             { commander, pair ->
                 val (name, skinName) = pair
-                val npc = NPCManager.createNPC(name, skinName)
+                val npc = NPCManager.createNPC(name, skinName, commander.location)
                 commander.sendMessage("${ChatColor.GREEN}Created NPC ${npc.name} with skin $skinName")
             }
         )

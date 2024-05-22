@@ -1,14 +1,21 @@
 package me.wanttobee.mpaq.party
 
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
+import java.util.*
 
-object PartyManager {
+object PartyManager : Listener {
     private val allParties = mutableListOf<Party>()
     private val allPendingInvites = mutableMapOf<Player, Party>()
+    //player here is an reference to the old player object
+    private val OfflinePlayers = mutableListOf<Player>()
 
     fun isPlayerInParty(player: Player): Boolean {
         for (party in allParties) {
-            if (party.members.contains(player) || party.leader == player) {
+            if (party.members.contains(player)){
                 return true
             }
         }
@@ -16,20 +23,11 @@ object PartyManager {
     }
     fun isPlayerLeader(player: Player): Boolean {
         for (party in allParties) {
-            if (party.leader == player) {
+            if (player.uniqueId == party.leaderUUID) {
                 return true
             }
         }
         return false
-    }
-
-    fun getUserParty(player: Player): Party? {
-        for (party in allParties) {
-            if (party.members.contains(player) || party.leader == player) {
-                return party
-            }
-        }
-        return null
     }
 
     fun getPlayerParty(player: Player): Party? {
@@ -43,7 +41,7 @@ object PartyManager {
 
     fun getLeaderParty(player: Player): Party? {
         for (party in allParties) {
-            if (party.leader == player) {
+            if (player.uniqueId == party.leaderUUID) {
                 return party
             }
         }
@@ -56,8 +54,9 @@ object PartyManager {
             leader.sendMessage("You are already in a party")
             return
         }
-        val party = Party(leader)
+        val party = Party(leader.uniqueId)
         allParties.add(party)
+        party.addMember(leader)
         leader.sendMessage("Party created")
 
     }
@@ -137,6 +136,7 @@ object PartyManager {
         val party = getPlayerParty(player)
         if (party != null) {
             party.removeMember(player)
+            player.sendMessage("You have left the party")
         }
         else {
             player.sendMessage("You are not in a party")
@@ -144,14 +144,42 @@ object PartyManager {
     }
 
     fun listPartyMembers(player: Player) {
-        val party = getUserParty(player)
+        val party = getPlayerParty(player)
         if (party != null) {
             player.sendMessage("Party members:")
-            player.sendMessage(party.leader.name)
             party.members.forEach { player.sendMessage(it.name) }
         }
         else {
             player.sendMessage("You are not in a party")
         }
     }
+
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        val player = event.player
+        val party = getPlayerParty(player)
+        if (party != null)
+            OfflinePlayers.add(player)
+
+    }
+
+    @EventHandler
+    fun rejoinParty(event: PlayerJoinEvent) {
+        val player = event.player
+        for(offlinePlayer in OfflinePlayers) {
+            if (player.uniqueId == offlinePlayer.uniqueId) {
+                OfflinePlayers.remove(player)
+                val party = getPlayerParty(offlinePlayer)
+                if (party != null) {
+                    party.removeMember(offlinePlayer)
+                    party.addMember(player)
+                    player.sendMessage("You have rejoined the party")
+                }
+                break
+            }
+        }
+
+    }
+
+
 }
