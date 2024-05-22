@@ -2,6 +2,7 @@ package me.wanttobee.mpaq;
 
 import me.wanttobee.commandtree.CommandTreeSystem
 import me.wanttobee.everythingitems.ItemUtil
+import me.wanttobee.mpaq.party.PartyCommands
 import org.bukkit.ChatColor
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.annotation.command.Command
@@ -25,8 +26,7 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author
        // Command(name = "helloWorld", aliases = ["hw","hello"], usage = "/helloWorld"),
        // Command(name = "byeWorld", aliases = ["bw","bye"], usage = "/byeWorld reason"),
         Command(name = "questnpc", aliases = ["questnpcs", "qnpc"], usage = "/npc <create|list|delete> [name] [skinName]"),
-
-
+        Command(name= "party", aliases = ["p"], usage = "/party <invite|disband> [player]"),
 )
 
 // library has to be loaded in order to use kotlin
@@ -42,9 +42,12 @@ class MinecraftPlugin : JavaPlugin() {
         CommandTreeSystem.initialize(instance, "${ChatColor.GREEN}(C)$title")
         ItemUtil.initialize(instance, "${ChatColor.LIGHT_PURPLE}(I)$title")
 
+
         val citizensPlugin = server.pluginManager.getPlugin("Citizens")
         CommandTreeSystem.createCommand(NPCCommands)
         NPCManager.init(this)
+        CommandTreeSystem.createCommand(PartyCommands)
+
 
         server.onlinePlayers.forEach { player ->
             player.sendMessage("$title Plugin has been enabled!")
