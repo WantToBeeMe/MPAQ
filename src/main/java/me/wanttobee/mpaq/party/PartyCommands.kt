@@ -16,6 +16,7 @@ object PartyCommands : ICommandNamespace {
         acceptPartyInvite,
         listParty,
         leaveParty,
+        kickFromParty,
     )
 
 
@@ -35,7 +36,7 @@ object PartyCommands : ICommandNamespace {
         override val baseTree: ICommandNode = CommandEmptyLeaf(
             "disband"
         ) { commander ->
-            PartyManager.disbandParty(commander)
+            PartyManager.disbandPartyByLeader(commander)
         }
         override val helpText: String = "/party disband"
     }
@@ -65,5 +66,16 @@ object PartyCommands : ICommandNamespace {
             PartyManager.leaveParty(commander)
         }
         override val helpText: String = "/party leave"
+    }
+
+    object kickFromParty : ICommandObject {
+        override val baseTree: ICommandNode = CommandPlayerLeaf(
+            "kick",
+            { Bukkit.getOnlinePlayers()},
+            { commander, player ->
+                PartyManager.kickFromParty(commander, player)
+            }
+        )
+        override val helpText: String = "/party kick <player>"
     }
 }

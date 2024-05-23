@@ -13,6 +13,17 @@ object PartyManager : Listener {
     //player here is an reference to the old player object
     private val OfflinePlayers = mutableListOf<Player>()
 
+
+
+    fun disbandParty(party: Party) {
+        party.messageParty("Party disbanded")
+        for (x in party.members) {
+           party.removeMember(x)
+        }
+        allParties.remove(party)
+    }
+
+
     fun isPlayerInParty(player: Player): Boolean {
         for (party in allParties) {
             if (party.members.contains(player)){
@@ -61,7 +72,7 @@ object PartyManager : Listener {
 
     }
 
-    fun disbandParty(leader: Player) {
+    fun disbandPartyByLeader(leader: Player) {
         val party = getLeaderParty(leader)
         if (party != null) {
             allParties.remove(party)
@@ -86,6 +97,11 @@ object PartyManager : Listener {
     }
 
     fun inviteCommandLogic(leader: Player, player: Player) {
+        if (leader == player)
+        {
+            leader.sendMessage("You cannot invite yourself to a party")
+            return
+        }
         //check if player is in a party
         if (isPlayerInParty(player)) {
             leader.sendMessage("Player is already in a party")
@@ -181,5 +197,19 @@ object PartyManager : Listener {
 
     }
 
-
+    fun kickFromParty(commander: Player, player: Player) {
+        val party = getLeaderParty(commander)
+        if (party != null) {
+            if (party.members.contains(player)) {
+                party.removeMember(player)
+                player.sendMessage("You have been kicked from the party")
+            }
+            else {
+                commander.sendMessage("Player is not in your party")
+            }
+        }
+        else {
+            commander.sendMessage("You are not the leader of a party")
+        }
+    }
 }

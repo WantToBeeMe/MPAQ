@@ -66,10 +66,6 @@ tasks.processResources {
     }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
 
 // // this piece of code makes it so when building a jar with ./gradle clean build shadowJar
 // // that the 2 jars you will get are ProjectName.jar and ProjectName-1.0.jar
