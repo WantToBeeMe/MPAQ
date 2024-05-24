@@ -3,6 +3,8 @@ package me.wanttobee.mpaq.party
 import me.wanttobee.commandtree.ICommandNamespace
 import me.wanttobee.commandtree.ICommandObject
 import me.wanttobee.commandtree.nodes.*
+import me.wanttobee.mpaq.quest.QuestManager
+import me.wanttobee.mpaq.quest.QuestManager.createExampleQuest
 import org.bukkit.Bukkit
 
 object PartyCommands : ICommandNamespace {
@@ -17,6 +19,8 @@ object PartyCommands : ICommandNamespace {
         listParty,
         leaveParty,
         kickFromParty,
+        startQuest,
+        stopQuest,
     )
 
 
@@ -78,4 +82,23 @@ object PartyCommands : ICommandNamespace {
         )
         override val helpText: String = "/party kick <player>"
     }
+}
+
+object stopQuest : ICommandObject {
+    override val baseTree: ICommandNode = CommandEmptyLeaf(
+        "stopQuest"
+    ) { commander ->
+        QuestManager.stopQuest(PartyManager.getPlayerParty(commander))
+    }
+    override val helpText: String = "/party stopQuest"
+}
+
+object startQuest : ICommandObject {
+    override val baseTree: ICommandNode = CommandEmptyLeaf(
+        "startQuest"
+    ) { commander ->
+        QuestManager.startQuest(PartyManager.getPlayerParty(commander), createExampleQuest() )
+    }
+    override val helpText: String = "/party startQuest"
+
 }
