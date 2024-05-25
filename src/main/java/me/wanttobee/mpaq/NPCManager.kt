@@ -1,14 +1,8 @@
 package me.wanttobee.mpaq
 
-import me.wanttobee.commandtree.ICommandNamespace
-import me.wanttobee.commandtree.ICommandObject
 import net.citizensnpcs.api.CitizensAPI
 import net.citizensnpcs.api.npc.NPC
 import net.citizensnpcs.api.npc.NPCRegistry
-import net.citizensnpcs.api.trait.Trait
-import net.citizensnpcs.api.trait.TraitName
-import net.citizensnpcs.npc.CitizensNPC
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.plugin.java.JavaPlugin

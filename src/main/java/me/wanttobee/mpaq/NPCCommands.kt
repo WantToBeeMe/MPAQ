@@ -1,62 +1,41 @@
 package me.wanttobee.mpaq
 
-import me.wanttobee.commandtree.ICommandNamespace
-import me.wanttobee.commandtree.ICommandObject
-import me.wanttobee.commandtree.nodes.*
+import me.wanttobee.commandtree.Description
+import me.wanttobee.commandtree.ITreeCommand
+import me.wanttobee.commandtree.partials.*
 import net.md_5.bungee.api.ChatColor
-import org.bukkit.entity.Player
+import org.bukkit.Bukkit
 
-object NPCCommands : ICommandNamespace {
-    override val commandName: String = "questnpc"
-    override val commandSummary: String = "Manage NPCs"
-    override val hasOnlyOneGroupMember: Boolean = false
-    override val isZeroParameterCommand: Boolean = false
-    override val systemCommands: Array<ICommandObject> = arrayOf(
-        ListNPCs,
-        DeleteNPCs,
-        CreateNPCs
-    )
+object NPCCommands : ITreeCommand {
+    override val description: Description = Description("Manage NPCs")
+        .addSubDescription("create", "create a new NPC", "npc create <name> <skinName>")
+        .addSubDescription("list", "list all NPCs", "npc list")
+        .addSubDescription("delete", "delete an NPC", "npc delete <name>")
 
-    object CreateNPCs : ICommandObject {
-        override val baseTree: ICommandNode = CommandPairLeaf(
-            "create",
-            CommandStringLeaf("name", null, { commander, name -> name }),
-            CommandStringLeaf("skinName", null, { commander, skinName -> skinName }),
-            { commander, pair ->
-                val (name, skinName) = pair
-                val npc = NPCManager.createNPC(name, skinName, commander.location)
-                commander.sendMessage("${ChatColor.GREEN}Created NPC ${npc.name} with skin $skinName")
-            }
-        )
-        override val helpText: String = "/npc create <name> <skinName>"
-    }
-
-    object ListNPCs : ICommandObject {
-        override val baseTree: ICommandNode = CommandEmptyLeaf(
-            "list"
-        ) { commander ->
+    override val command = BranchPartial("questnpc").setStaticPartials(
+        PairPartial<String,String>("create").setPartials(
+            StringPartial("name")
+                .setDynamicOptions { Bukkit.getOnlinePlayers().map { p -> p.name }.toTypedArray() },
+            StringPartial("skinName")
+                .setDynamicOptions { Bukkit.getOnlinePlayers().map { p -> p.name }.toTypedArray() }
+        ).setEffect { commander, (name, skinName) ->
+            NPCManager.createNPC(name, skinName, commander.location)
+            commander.sendMessage("${ChatColor.GREEN}Created NPC $name with skin $skinName")
+        },
+        //=============================================
+        EmptyPartial("list").setEffect { commander ->
             val npcs = NPCManager.listNPCs()
             npcs.forEach { npc ->
-                commander.sendMessage("${ChatColor.GREEN}${npc.name}")
+                commander.sendMessage("${ChatColor.GRAY}${npc.name} ${ChatColor.GOLD}${npc.name}")
             }
-        }
-        override val helpText: String = "/npc list"
-    }
-
-    object DeleteNPCs : ICommandObject {
-        override val baseTree: ICommandNode = CommandStringLeaf(
-            "delete",
-            {NPCManager.listNPCs().map { it.name }.toTypedArray()},
-            { commander, name ->
-                val success = NPCManager.deleteNPC(name)
-                if (success) {
-                    commander.sendMessage("${ChatColor.GREEN}Deleted NPC $name")
-                } else {
-                    commander.sendMessage("${ChatColor.RED}NPC $name not found")
-                }
+        },
+        //=============================================
+        StringPartial("delete")
+            .setDynamicOptions { commander -> NPCManager.listNPCs().map {it.name}.toTypedArray() }
+            .setEffect { commander, npcName ->
+                if(NPCManager.deleteNPC(npcName))
+                    commander.sendMessage("${ChatColor.GREEN}Deleted NPC $npcName")
+                else commander.sendMessage("${ChatColor.RED}NPC $npcName not found")
             }
-        )
-        override val helpText: String = "/npc delete <name>"
-    }
-
+    )
 }
