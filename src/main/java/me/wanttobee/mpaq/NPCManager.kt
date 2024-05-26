@@ -9,7 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin
 
 object NPCManager {
     private lateinit var register: NPCRegistry
-    fun init(plugin: JavaPlugin) {
+    fun initialize(plugin: JavaPlugin) {
         register = CitizensAPI.getNPCRegistry()
     }
 

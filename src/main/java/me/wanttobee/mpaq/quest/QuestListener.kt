@@ -21,5 +21,4 @@ class QuestListener : Listener {
             }
         }
     }
-
 }

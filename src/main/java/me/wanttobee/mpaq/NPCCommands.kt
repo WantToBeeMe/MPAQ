@@ -24,8 +24,7 @@ object NPCCommands : ITreeCommand {
         },
         //=============================================
         EmptyPartial("list").setEffect { commander ->
-            val npcs = NPCManager.listNPCs()
-            npcs.forEach { npc ->
+            NPCManager.listNPCs().forEach { npc ->
                 commander.sendMessage("${ChatColor.GRAY}${npc.name} ${ChatColor.GOLD}${npc.name}")
             }
         },

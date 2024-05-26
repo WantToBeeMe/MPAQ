@@ -1,215 +1,135 @@
 package me.wanttobee.mpaq.party
 
+import org.bukkit.ChatColor
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import java.util.*
+import org.bukkit.plugin.java.JavaPlugin
 
 object PartyManager : Listener {
+    private var title = ""
     private val allParties = mutableListOf<Party>()
-    private val allPendingInvites = mutableMapOf<Player, Party>()
-    //player here is an reference to the old player object
-    private val OfflinePlayers = mutableListOf<Player>()
+    // no map since a leader can invite multiple times, and a player can get multiple invites
+    val allPendingInvites = mutableListOf<Triple<Player, Player, ()->Unit>>() // <leader, invitee, invitationProcess>
+    private val offlinePlayers = mutableListOf<Player>()
 
+    fun initialize(plugin: JavaPlugin, title: String?) {
+        // plugin is never used, but here for consistency (since all other systems have it)
+        // also, if you want to access the plugin you now have to do `MinecraftPlugin.instance.you_action`
+        // so then this would make it easier since you only have to use `plugin.you_action`
+        this.title = title ?: ""
+    }
 
+    // Helper functions to make sure all outgoing messages are formatted the same
+    fun sendSuccessMessage(player: Player, message: String) = player.sendMessage("$title${ChatColor.GREEN} $message")
+    fun sendErrorMessage(player: Player, message: String) = player.sendMessage("$title${ChatColor.RED} $message")
+    fun sendInfoMessage(player: Player, message: String) = player.sendMessage("$title${ChatColor.WHITE} $message")
 
-    fun disbandParty(party: Party) {
-        party.messageParty("Party disbanded")
-        for (x in party.members) {
-           party.removeMember(x)
-        }
+    fun removeParty(party: Party) {
+        allPendingInvites.removeIf { party.isLeader(it.first) }
         allParties.remove(party)
     }
 
-
-    fun isPlayerInParty(player: Player): Boolean {
+    fun getOrCreateParty(player: Player): Party {
         for (party in allParties) {
-            if (party.members.contains(player)){
-                return true
-            }
-        }
-        return false
-    }
-    fun isPlayerLeader(player: Player): Boolean {
-        for (party in allParties) {
-            if (player.uniqueId == party.leaderUUID) {
-                return true
-            }
-        }
-        return false
-    }
-
-    fun getPlayerParty(player: Player): Party? {
-        for (party in allParties) {
-            if (party.members.contains(player)) {
+            if (party.isMember(player))
                 return party
-            }
         }
-        return null
-    }
-
-    fun getLeaderParty(player: Player): Party? {
-        for (party in allParties) {
-            if (player.uniqueId == party.leaderUUID) {
-                return party
-            }
-        }
-        return null
-    }
-
-    fun createParty(leader: Player) {
-        //first we check all the party members to see if they are in a party
-        if (isPlayerInParty(leader)) {
-            leader.sendMessage("You are already in a party")
-            return
-        }
-        val party = Party(leader.uniqueId)
+        val party = Party(player)
         allParties.add(party)
-        party.addMember(leader)
-        leader.sendMessage("Party created")
-
+        return party
     }
-
-    fun disbandPartyByLeader(leader: Player) {
-        val party = getLeaderParty(leader)
-        if (party != null) {
-            allParties.remove(party)
-            party.messageParty("Party disbanded")
-        }
-        else {
-            leader.sendMessage("You are not the leader or a party")
-        }
-    }
-
-    fun inviteToParty(leader: Player, player: Player) {
-        val party = getLeaderParty(leader)
-        if (party != null) {
-            party.outgoingInvites.add(player)
-            allPendingInvites[player] = party
-            player.sendMessage("${leader.name} has invited you to their party")
-        }
-        else {
-            leader.sendMessage("You are not the leader of a party")
-        }
-
-    }
-
-    fun inviteCommandLogic(leader: Player, player: Player) {
-        if (leader == player)
-        {
-            leader.sendMessage("You cannot invite yourself to a party")
-            return
-        }
-        //check if player is in a party
+    fun createParty(player: Player) {
         if (isPlayerInParty(player)) {
-            leader.sendMessage("Player is already in a party")
+            sendErrorMessage(player,"You are already in a party")
             return
         }
-        //check if player is the leader
-        if (isPlayerLeader(player)) {
-            leader.sendMessage("Player is already in a party")
-            return
-        }
-        //now we check if the player has a pending invite
-        if (allPendingInvites.containsKey(player)) {
-            leader.sendMessage("Player already has a pending invite")
-            return
-        }
-        //now check if the leader is already in a party, if not create a party
-        if (!isPlayerInParty(leader)) {
-            createParty(leader)
-        }
-        inviteToParty(leader, player)
-
+        val party = Party(player)
+        allParties.add(party)
     }
 
-    fun acceptInvite(invitee: Player) {
-        val party = allPendingInvites[invitee]
-        if (party != null) {
-            party.addMember(invitee)
-            allPendingInvites.remove(invitee)
-            party.messageParty("${invitee.name} has joined the party")
+    fun isPlayerInParty(player: Player): Boolean = getParty(player) != null
+
+    fun getParty(player: Player): Party? {
+        for (party in allParties) {
+            if (party.isMember(player))
+                return party
         }
-        else {
-            invitee.sendMessage("You have no pending invites")
-        }
+        return null
     }
 
-    fun declineInvite(invitee: Player) {
-        val party = allPendingInvites[invitee]
-        if (party != null) {
-            allPendingInvites.remove(invitee)
+    // =========================
+    //  PARTY SHORTCUTS/ALIASES
+    // =========================
+    fun partyInvite(leader: Player, invitee: Player) = getOrCreateParty(leader).invitePlayer(leader, invitee)
+    fun partyDisband(player: Player) = getParty(player)?.disband(player)
+    fun partyListMembers(player: Player) = getParty(player)?.listMembers(player)
+    fun partyLeave(player: Player) = getParty(player)?.leavePlayer(player)
+    fun partyKick(player: Player, target: Player) = getParty(player)?.kickPlayer(player, target)
 
-        }
-        else {
-            invitee.sendMessage("You have no pending invites")
-        }
+    // ======================
+    //    INVITATION LOGIC
+    // ======================
+    fun getIncomingInvites(player : Player): List<Triple<Player, Player, ()->Unit>> {
+        return allPendingInvites.filter { it.second == player }
+    }
+    fun getOutgoingInvites(player : Player): List<Triple<Player, Player, ()->Unit>> {
+        return allPendingInvites.filter { it.first == player }
     }
 
-    fun leaveParty(player: Player) {
-        val party = getPlayerParty(player)
-        if (party != null) {
-            party.removeMember(player)
-            player.sendMessage("You have left the party")
+    private fun getRelevantInvite(invitee: Player, fromInviter: Player? = null): Triple<Player, Player, ()->Unit>? {
+        val invites = getIncomingInvites(invitee)
+        if (invites.isEmpty()) {
+            sendErrorMessage(invitee, "You have no invites")
+            return null
         }
-        else {
-            player.sendMessage("You are not in a party")
+        // if there is more then 1 invite, you HAVE to specify the inviter
+        if (invites.size > 1 && fromInviter == null) {
+            sendErrorMessage(invitee, "You have multiple invites, please specify the inviter")
+            return null
         }
+        return if(fromInviter == null) invites[0]
+        else invites.firstOrNull { it.first == fromInviter }
     }
 
-    fun listPartyMembers(player: Player) {
-        val party = getPlayerParty(player)
-        if (party != null) {
-            player.sendMessage("Party members:")
-            party.members.forEach { player.sendMessage(it.name) }
-        }
-        else {
-            player.sendMessage("You are not in a party")
-        }
+
+    fun acceptInvite(invitee: Player, fromInviter: Player?) {
+        val invite = getRelevantInvite(invitee, fromInviter) ?: return
+        invite.third()
+        allPendingInvites.removeIf { it.second == invitee }
     }
 
+    fun declineInvite(invitee: Player, fromInviter: Player?) {
+        val invite = getRelevantInvite(invitee, fromInviter) ?: return
+        sendErrorMessage(invite.first, "${invitee.name} declined your invite")
+        allPendingInvites.remove(invite)
+    }
+
+    // ======================
+    // REJOIN PARTY MECHANISM
+    // ======================
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
         val player = event.player
-        val party = getPlayerParty(player)
+        // if you want to make it to also replace the invites, then you would also need to update the invite unit
+        allPendingInvites.removeIf { it.first == player || it.second == player }
+        val party = getParty(player)
         if (party != null)
-            OfflinePlayers.add(player)
-
+            offlinePlayers.add(player)
     }
 
     @EventHandler
     fun rejoinParty(event: PlayerJoinEvent) {
         val player = event.player
-        for(offlinePlayer in OfflinePlayers) {
+        for(offlinePlayer in offlinePlayers) {
             if (player.uniqueId == offlinePlayer.uniqueId) {
-                OfflinePlayers.remove(player)
-                val party = getPlayerParty(offlinePlayer)
-                if (party != null) {
-                    party.removeMember(offlinePlayer)
-                    party.addMember(player)
-                    player.sendMessage("You have rejoined the party")
-                }
+                offlinePlayers.remove(player)
+                val party = getParty(offlinePlayer)
+                party?.swapSamePlayer(offlinePlayer, player)
                 break
             }
-        }
-
-    }
-
-    fun kickFromParty(commander: Player, player: Player) {
-        val party = getLeaderParty(commander)
-        if (party != null) {
-            if (party.members.contains(player)) {
-                party.removeMember(player)
-                player.sendMessage("You have been kicked from the party")
-            }
-            else {
-                commander.sendMessage("Player is not in your party")
-            }
-        }
-        else {
-            commander.sendMessage("You are not the leader of a party")
         }
     }
 }

@@ -48,11 +48,9 @@ dependencies {
     compileOnly("org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT") // annotations!!
     kapt("org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT") // annotations!!
 
-
-    compileOnly("net.citizensnpcs:citizens-main:2.0.33-SNAPSHOT") {
+    compileOnly("net.citizensnpcs:citizens-main:2.0.34-SNAPSHOT") {
         exclude(group = "*", module = "*")
     }
-
 }
 
 // Configures a task to process resources, such as a plugin.yml file,

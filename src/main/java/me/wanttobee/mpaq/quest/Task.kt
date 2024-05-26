@@ -18,7 +18,7 @@ interface Task {
     fun handleEvent(event: Any) //abstract
 }
 
-//tijdelijk hier deze classes gemakt voor de test
+//tijdelijk hier deze classes gemaakt voor de test
 
 class CollectItemTask(
     override val name: String,
@@ -57,5 +57,4 @@ class CollectItemTask(
             }
         }
     }
-
 }

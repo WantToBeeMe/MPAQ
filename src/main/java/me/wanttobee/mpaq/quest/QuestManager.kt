@@ -10,16 +10,14 @@ object QuestManager {
     fun startQuest(party: Party?, quest: Quest) {
         if(party == null) return
         activeQuests[party] = quest
-        party.messageParty("Quest started: ${quest.name}")
+        party.broadcastParty("Quest started: ${quest.name}")
     }
 
     fun stopQuest(party: Party?) {
         if(party == null) return
         activeQuests.remove(party)
-        party.messageParty("Quest stopped")
+        party.broadcastParty("Quest stopped")
     }
-
-
 
 
     //TIJDELIJKE QUEST
@@ -70,5 +68,4 @@ object QuestManager {
             objectives = listOf(objective1, objective2)
         )
     }
-
 }

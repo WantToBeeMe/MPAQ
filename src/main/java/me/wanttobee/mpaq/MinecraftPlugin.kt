@@ -24,8 +24,6 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author
 @Description("A Quest plugin for Minecraft!")
 
 @Commands(
-       // Command(name = "helloWorld", aliases = ["hw","hello"], usage = "/helloWorld"),
-       // Command(name = "byeWorld", aliases = ["bw","bye"], usage = "/byeWorld reason"),
         Command(name = "questnpc", aliases = ["questnpcs", "qnpc"], usage = "/npc <create|list|delete> [name] [skinName]"),
         Command(name= "party", aliases = ["p"], usage = "/party <invite|disband> [player]"),
 )
@@ -40,16 +38,19 @@ class MinecraftPlugin : JavaPlugin() {
 
     override fun onEnable() {
         instance = this
+        // Initialization
         CommandTreeSystem.initialize(instance, "${ChatColor.GREEN}(C)$title")
         ItemUtil.initialize(instance, "${ChatColor.LIGHT_PURPLE}(I)$title")
+        NPCManager.initialize(instance)
+        PartyManager.initialize(instance, title)
+        val citizensPlugin = server.pluginManager.getPlugin("Citizens") // not needed? not sure tho
 
-
-        val citizensPlugin = server.pluginManager.getPlugin("Citizens")
+        // Command registration
         CommandTreeSystem.createCommand(NPCCommands)
-        NPCManager.init(this)
         CommandTreeSystem.createCommand(PartyCommands)
-        server.pluginManager.registerEvents(PartyManager, this)
 
+        // Event registration
+        server.pluginManager.registerEvents(PartyManager, this)
 
         server.onlinePlayers.forEach { player ->
             player.sendMessage("$title Plugin has been enabled!")
